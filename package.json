@@ -1,0 +1,1 @@
+{"name":"subject-lock-video","version":"1.0.0","description":"Subject Lock Video Maker","author":"Monjurul Haque","main":"main.js","devDependencies":{"electron":"31.7.7","electron-builder":"24.13.3"},"build":{"appId":"com.mhacademy.subjectlock","productName":"SubjectLockVideo","files":["main.js","index.html","icon-512.png"],"win":{"target":"portable","icon":"icon-512.png"}}}

@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>সাবজেক্ট লক ভিডিও</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b1d1a"><link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1d1a;color:#eafff9;font-family:system-ui,"Noto Sans Bengali",sans-serif;padding:14px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(14px,env(safe-area-inset-bottom));max-width:560px;margin:auto}
+h1{font-size:20px;margin:4px 0}p.s{color:#8fb5ab;font-size:13px;margin:2px 0 12px}.c{background:#13302b;border-radius:14px;padding:12px;margin-bottom:12px}
+label{display:block;font-size:13px;color:#8fb5ab;margin:8px 0 2px}input[type=range],select{width:100%}select,button,.b{background:#1d4a42;color:#eafff9;border:0;border-radius:10px;padding:10px;font-size:15px}
+.b,#go{display:block;width:100%;text-align:center;background:#2de2c0;color:#06231d;font-weight:700;text-decoration:none;margin-top:10px}
+#list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.it{position:relative}.it canvas{width:100%;border-radius:8px;display:block}
+.it button{position:absolute;top:2px;right:2px;padding:2px 7px;font-size:12px;background:#000a}video,#cv{width:100%;border-radius:12px;background:#000}#cv{display:none}
+[hidden]{display:none!important}footer{text-align:center;color:#8fb5ab;font-size:12px;margin-top:14px}
+</style></head><body>
+<h1>🎯 সাবজেক্ট লক ভিডিও মেকার</h1><p class="s">একাধিক ছবি/ভিডিও দিন → সাবজেক্ট মাঝখানে লক থাকবে, ব্যাকগ্রাউন্ড ঘুরবে, ঝাপসা হবে, বিটে জুম পাঞ্চ হবে</p>
+<div class="c"><input type="file" id="f" accept="image/*,video/*" multiple hidden><button onclick="f.click()" style="width:100%">＋ ছবি / ভিডিও যোগ করুন</button>
+<p class="s" style="margin-top:8px">প্রতিটি থাম্বনেইলে সাবজেক্টের ওপর ট্যাপ করুন (সবুজ রিং = ফোকাস পয়েন্ট)</p><div id="list"></div></div>
+<div class="c"><label>মোট দৈর্ঘ্য: <b id="v1">10</b> সেকেন্ড</label><input type="range" id="dur" min="4" max="60" value="10" oninput="v1.textContent=this.value">
+<label>কাট রিদম (কম = দ্রুত কাট): <b id="v2">50</b>%</label><input type="range" id="spd" min="20" max="150" value="50" oninput="v2.textContent=this.value">
+<label>ইফেক্ট ইন্টেনসিটি: <b id="v3">70</b>%</label><input type="range" id="int" min="10" max="100" value="70" oninput="v3.textContent=this.value">
+<label>কোয়ালিটি</label><select id="res"><option value="720">720×1280 (দ্রুত)</option><option value="1080">1080×1920 (HD)</option></select>
+<label>মিউজিক (ঐচ্ছিক)</label><input type="file" id="mu" accept="audio/*"></div>
+<button id="go">▶ ভিডিও রেন্ডার করুন</button><p class="s" id="st" style="margin-top:8px">রেন্ডার চলাকালীন অ্যাপ খোলা রাখুন (রিয়েল-টাইমে রেন্ডার হয়)</p>
+<canvas id="cv"></canvas><video id="out" controls playsinline hidden></video><a id="dl" class="b" hidden>⬇ ডাউনলোড</a><button id="sh" class="b" hidden>📤 শেয়ার / সেভ করুন</button>
+<footer>MH Academy · developed by Monjurul Haque</footer>
+<script>
+const $=i=>document.getElementById(i),L=$('list');let clips=[],busy=0;
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js');
+function th(c){const k=c.cv,g=k.getContext('2d');g.drawImage(c.el,0,0,k.width,k.height);const x=c.sx*k.width,y=c.sy*k.height;g.lineWidth=3;g.strokeStyle='#2de2c0';g.beginPath();g.arc(x,y,16,0,7);g.stroke();g.fillStyle='#fff';g.fillRect(x-2,y-2,4,4)}
+$('f').onchange=async e=>{for(const f of e.target.files){const u=URL.createObjectURL(f),v=f.type.startsWith('video'),c={sx:.5,sy:.5,v};
+try{if(v){const m=document.createElement('video');Object.assign(m,{src:u,muted:true,playsInline:true,preload:'auto'});await new Promise((r,j)=>{const ok=()=>{m.currentTime=.01;setTimeout(r,300)};m.onloadedmetadata=ok;m.onerror=j;m.load();setTimeout(()=>m.videoWidth?r():j(),8000)});c.el=m;c.w=m.videoWidth;c.h=m.videoHeight}else{const m=new Image();m.src=u;await m.decode();c.el=m;c.w=m.naturalWidth;c.h=m.naturalHeight}}catch{continue}
+const d=document.createElement('div'),k=document.createElement('canvas'),b=document.createElement('button');d.className='it';k.width=160;k.height=Math.round(160*c.h/c.w);c.cv=k;
+k.onclick=ev=>{const r=k.getBoundingClientRect();c.sx=(ev.clientX-r.left)/r.width;c.sy=(ev.clientY-r.top)/r.height;th(c)};
+b.textContent='✕';b.onclick=()=>{clips=clips.filter(q=>q!==c);d.remove()};d.append(k,b);L.append(d);clips.push(c);th(c)}e.target.value=''};
+function onsets(a){const d=a.getChannelData(0),h=Math.floor(a.sampleRate*.02),e=[];for(let i=0;i+h<d.length;i+=h){let q=0;for(let j=0;j<h;j+=4)q+=d[i+j]*d[i+j];e.push(Math.sqrt(q/(h/4)))}const o=e.map((v,i)=>i?v-e[i-1]:0),m=o.reduce((x,y)=>x+y,0)/o.length,sd=Math.sqrt(o.reduce((x,y)=>x+(y-m)**2,0)/o.length),r=[];for(let i=1;i<o.length-1;i++)if(o[i]>m+1.5*sd&&o[i]>=o[i-1]&&o[i]>=o[i+1])r.push(i*.02);return r}
+const tc=document.createElement('canvas'),tg=tc.getContext('2d',{willReadFrequently:true});
+function track(c){const w=160,h=Math.round(w*c.h/c.w);tc.width=w;tc.height=h;tg.drawImage(c.el,0,0,w,h);const d=tg.getImageData(0,0,w,h).data,g=new Uint8Array(w*h);
+for(let i=0;i<g.length;i++)g[i]=(d[4*i]+2*d[4*i+1]+d[4*i+2])>>2;const R=8,N=2*R+1;let X=Math.round(c.px*w),Y=Math.round(c.py*h);
+if(c.tp){let best=1e12,bx=X,by=Y;for(let dy=-10;dy<=10;dy++)for(let dx=-10;dx<=10;dx++){const a=X+dx,b=Y+dy;if(a<R||b<R||a>=w-R||b>=h-R)continue;let s=0;
+for(let j=0;j<N;j+=2)for(let i=0;i<N;i+=2)s+=Math.abs(g[(b-R+j)*w+a-R+i]-c.tp[j*N+i]);if(s<best){best=s;bx=a;by=b}}X=bx;Y=by;c.px=X/w;c.py=Y/h}
+X=Math.min(w-R-1,Math.max(R,X));Y=Math.min(h-R-1,Math.max(R,Y));c.tp=new Uint8Array(N*N);for(let j=0;j<N;j++)for(let i=0;i<N;i++)c.tp[j*N+i]=g[(Y-R+j)*w+X-R+i]}
+$('go').onclick=async()=>{if(busy)return;if(!clips.length)return alert('আগে ছবি/ভিডিও যোগ করুন');busy=1;$('out').hidden=$('dl').hidden=$('sh').hidden=true;
+const W=+$('res').value,H=Math.round(W*16/9),cv=$('cv');cv.width=W;cv.height=H;cv.style.display='block';const x=cv.getContext('2d');
+const bg=document.createElement('canvas'),sh=document.createElement('canvas');bg.width=W>>1;bg.height=H>>1;sh.width=W;sh.height=H;const bx=bg.getContext('2d'),sg=sh.getContext('2d');
+const T=+$('dur').value,S=+$('spd').value/100,I=+$('int').value/100,R=Math.random;clips.forEach(c=>{c.px=c.sx;c.py=c.sy;c.tp=null});let jx=0,jy=0,ons=[];
+const lay=(g,c,f,z,rot)=>{g.save();g.translate((W/2+jx)*f,(H*.5+jy)*f);g.rotate(rot);g.scale(z*f,z*f);g.translate(-c.px*c.w,-c.py*c.h);g.drawImage(c.el,0,0);g.restore()};
+const rc=r=>Math.cos(Math.abs(r))+Math.abs(Math.sin(r))*H/W;
+const draw=(c,u,p,e,t)=>{const base=Math.max(W/c.w,H/c.h),pk=Math.pow(1-Math.min(e/.28,1),3),z=base*p.z*(1+.4*I*pk)*(1+p.zd*I*u),rot=(p.r*(1-.5*u)+p.s*Math.pow(1-Math.min(e/.2,1),2))*Math.PI/180;
+jx=Math.sin(t*11)*W*.012;jy=Math.cos(t*13)*H*.008;const zb=z*Math.max(1.12,rc(rot*.6+.1)*1.05);
+bx.filter=`blur(${(6+16*I*pk)*W/2160}px) saturate(1.5) contrast(1.15) brightness(${p.b})`;bx.clearRect(0,0,bg.width,bg.height);
+for(let i=0;i<(pk>.08?6:1);i++){bx.globalAlpha=1/(i+1);lay(bx,c,.5,zb*(1+(i-2.5)*.03*pk*I*(i>0)),-rot*.6+(i-2.5)*.05*pk*I*(i>0))}bx.globalAlpha=1;x.drawImage(bg,0,0,W,H);
+sg.filter=`saturate(1.5) contrast(1.15) brightness(${p.b})`;sg.clearRect(0,0,W,H);lay(sg,c,1,z,rot);sg.filter='none';sg.globalCompositeOperation='destination-in';
+const gr=sg.createRadialGradient(W/2+jx,H*.5+jy,W*.12,W/2+jx,H*.5+jy,W*.34);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');sg.fillStyle=gr;sg.fillRect(0,0,W,H);sg.globalCompositeOperation='source-over';x.drawImage(sh,0,0);
+x.globalCompositeOperation='soft-light';const lg=x.createLinearGradient(0,0,0,H);lg.addColorStop(0,'rgba(0,200,190,.35)');lg.addColorStop(1,'rgba(255,130,50,.35)');x.fillStyle=lg;x.fillRect(0,0,W,H);x.globalCompositeOperation='source-over';
+const vg=x.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.7);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+if(pk>.05){x.fillStyle=`rgba(255,255,255,${.22*pk*I})`;x.fillRect(0,0,W,H)}};
+const stream=cv.captureStream(30);let ac;const mf=$('mu').files[0];
+if(mf){try{ac=new AudioContext();const a=await ac.decodeAudioData(await mf.arrayBuffer()),s=ac.createBufferSource(),d=ac.createMediaStreamDestination();s.buffer=a;ons=onsets(a);s.connect(d);s.start();d.stream.getAudioTracks().forEach(t=>stream.addTrack(t))}catch{}}
+const PT=[.8,1.3,.55,.2,.25,.2,.25,.25,.3,.5,.6,.8,.9,1.5,.4],B=[0];
+if(ons.length>3){let l=0;for(const o of ons)if(o-l>=.16&&o<T){B.push(o);l=o}B.push(T+1)}else{for(let i=0;B[B.length-1]<T;i++)B.push(B[B.length-1]+Math.max(.12,PT[i%PT.length]*S*2))}
+const mt=['video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm'].find(m=>MediaRecorder.isTypeSupported(m)),rec=new MediaRecorder(stream,mt?{mimeType:mt,videoBitsPerSecond:W>800?14e6:8e6}:{}),ch=[];
+rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+rec.onstop=()=>{ac&&ac.close();const b=new Blob(ch,{type:rec.mimeType||'video/webm'}),u=URL.createObjectURL(b),o=$('out'),a=$('dl');o.src=u;o.hidden=false;a.href=u;a.download='subject-lock.'+(b.type.includes('mp4')?'mp4':'webm');a.hidden=false;cv.style.display='none';const fl=new File([b],a.download,{type:b.type});if(navigator.canShare&&navigator.canShare({files:[fl]})){$('sh').hidden=false;$('sh').onclick=()=>navigator.share({files:[fl]}).catch(()=>{})}busy=0;$('st').textContent='✅ রেন্ডার শেষ'};
+let cur=-1,c,p;rec.start(1000);const t0=performance.now();
+const tick=now=>{try{const t=Math.max(0,(now-t0)/1000);if(t>=T){c&&c.v&&c.el.pause();rec.stop();return}let k=0;while(k<B.length-2&&B[k+1]<=t)k++;const e=t-B[k],u=Math.min(1,e/(B[k+1]-B[k]));
+if(k!==cur){cur=k;c&&c.v&&c.el.pause();c=clips[k%clips.length];p={z:.95+R(),zd:(R()<.5?-1:1)*(.1+R()*.2),r:(R()<.5?-1:1)*(10+R()*35*I),s:(R()<.5?-1:1)*(25+R()*50)*I,b:.82+R()*.38};
+if(c.v){if(c.el.currentTime>=c.el.duration-.3){c.el.currentTime=0;c.tp=null;c.px=c.sx;c.py=c.sy}c.el.play().catch(()=>{})}}
+if(c.v&&c.el.readyState>1)track(c);draw(c,u,p,e,t);$('st').textContent='রেন্ডার হচ্ছে… '+Math.round(t/T*100)+'%';requestAnimationFrame(tick)}catch(er){$('st').textContent='ত্রুটি: '+er.message;try{rec.stop()}catch{}busy=0}};requestAnimationFrame(tick)};
+</script></body></html>
